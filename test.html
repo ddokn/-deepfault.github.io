@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"
+        integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <style>
+        #two_more_steps {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    </style>
+    <div id="two_more_steps"></div>
+    
+    <div id="loading">
+        <img src="https://cdn.imweb.me/upload/S20230322ce248df9411fc/105454a9e0632.png">
+    </div>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.145.0/build/three.module.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from "three";
+        import { GLTFLoader } from "https://unpkg.com/three@0.145.0/examples/jsm/loaders/GLTFLoader.js";
+        let viewH = window.innerHeight;
+        let camera, scene, renderer, model;
+        const twomos = document.getElementById("two_more_steps");
+        let mouseX = 0,
+            mouseY = 0;
+        let cursorX = 5,
+            cursorY = 0;
+        let windowHalfX = window.innerWidth / 2;
+        let windowHalfY = window.innerHeight / 2;
+        let scroll_scale = 0;
+
+        if (twomos) {
+            init();
+            animate();
+        }
+
+        function init() {
+            const container = document.createElement("div");
+            twomos.appendChild(container);
+            camera = new THREE.PerspectiveCamera(
+                45,
+                twomos.offsetWidth / twomos.offsetHeight,
+                1,
+                1000
+            );
+            camera.position.x = 0;
+            camera.position.y = 25;
+            camera.position.z = 100;
+            scene = new THREE.Scene();
+
+            const hemiLight = new THREE.HemisphereLight(0xc0c0a8, 0x0f2d4c);
+            hemiLight.position.set(20, 40, 70);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xf7c82f, 0.1);
+            dirLight.position.set(20, 30, 200);
+            scene.add(dirLight);
+
+            const light1 = new THREE.PointLight(0xf7c82f, 1, 80);
+            light1.position.set(30, 100, 0);
+            scene.add(light1);
+
+            const light2 = new THREE.PointLight(0x1f61ad, 1, 300);
+            light2.position.set(-50, 50, -30);
+            scene.add(light2);
+
+            const manager = new THREE.LoadingManager();
+            manager.onStart = function (url, itemsLoaded, itemsTotal) {
+
+            };
+
+            manager.onLoad = function () {
+                $("#loading").fadeOut(1000, function () {
+                    $("#loading").remove();
+                    $('html').scrollTop(0);
+                });
+                $('html').scrollTop(0);
+            };
+
+            manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+
+            };
+
+            manager.onError = function (url) {
+                console.log("There was an error loading " + url);
+            };
+
+
+            const loader = new GLTFLoader(manager);
+
+
+            function loadGeometry(url) {
+                loader.load(url, function (gltf) {
+                    model = gltf.scene;
+                    model.traverse(function (object) {
+                        if (object.isMesh) {
+                            object.castShadow = true;
+                            object.receiveShadow = true;
+                            object.material.map = false;
+                            object.material.metalness = 0.5;
+                            object.material.roughness = 0.2;
+                        }
+                    });
+                    var windowWidth = window.matchMedia("screen and (max-width: 991px)");
+                    if (windowWidth.matches) {
+                        cursorX = 4.3;
+                        const modelScale = 1.25;
+                        model.scale.set(modelScale, modelScale, modelScale);
+                        model.rotation.y = 0;
+                        model.position.x = 15;
+                        model.position.y = -35;
+                        scene.add(model);
+                    } else {
+                        const modelScale = 1.25;
+                        model.scale.set(modelScale, modelScale, modelScale);
+                        model.rotation.y = 5;
+                        model.position.x = 15;
+                        model.position.y = -35;
+                        scene.add(model);
+                    }
+
+                });
+            }
+            loadGeometry(
+                "https://two-more-steps.github.io/imcolor/gltf/Venus_Italica_Bust.gltf"
+            );
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true,
+            });
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(twomos.offsetWidth, twomos.offsetHeight);
+            container.appendChild(renderer.domElement);
+            window.addEventListener("resize", onWindowResize);
+            document.addEventListener("mousemove", onDocumentMouseMove);
+        }
+
+        function onWindowResize() {
+            camera.aspect = twomos.offsetWidth / twomos.offsetHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(twomos.offsetWidth, twomos.offsetHeight);
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            render();
+        }
+
+        function render() {
+            if (model) {
+                model.rotation.y += (-model.rotation.y + cursorX) * 0.1;
+                model.rotation.x += (-model.rotation.x + cursorY) * 0.1;
+                camera.lookAt(scene.position);
+                if (scroll_scale < 1000) {
+                    camera.position.z += (-camera.position.z + 100 + scroll_scale) * 1;
+                } else {
+                    camera.position.z += (-camera.position.z + 3000) * 1;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+        function onDocumentMouseMove(event) {
+            cursorX = (event.clientX / (window.innerWidth * 1.25)) * 1.7 + 4;
+            cursorY = (event.clientY / window.innerHeight) * 0.7 - 0.25;
+        }
+
+        $(window).scroll(function (e) {
+            scroll_scale = ($(window).scrollTop() / viewH) * 100;
+        });
+    </script>
+</body>
+
+</html>

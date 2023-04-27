@@ -1,12 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="https://vendor-cdn.imweb.me/js/jquery.js?1627517460"></script>
+
 </head>
+
 <body>
-    <h1>hello world!</h1>
+    <style>
+        #canvas {
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    </style>
+
+    <canvas id="canvas"></canvas>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.141.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from "three";
+        import { GLTFLoader } from 'https://unpkg.com/three@0.141.0/examples/jsm/loaders/GLTFLoader.js'; //import gltf
+        import { OrbitControls } from 'https://unpkg.com/three@0.119.1/examples/jsm/controls/OrbitControls.js' // 마우스 조절 
+
+        
+
+        let [width, height] = [window.innerWidth, window.innerHeight];
+        let aspectRatio = width / height;
+        let canvas = document.querySelector('#canvas');
+        Object.assign(canvas, { width, height });
+
+        let scene = new THREE.Scene();
+
+        scene.background = new THREE.Color('#ffffff'); // 배경색 설정
+
+        let light = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(light);
+        
+        let camera = new THREE.PerspectiveCamera(45, aspectRatio, 1, 1000); // 카메라 관점 설정
+        camera.position.set(0, 25, 100); // x, y, z 축
+
+        let renderer = new THREE.WebGLRenderer({
+            canvas,
+            antialias: true // 계단 현상 완화
+        });
+        renderer.outputEncoding = THREE.sRGBEncoding;
+
+
+        let controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0, 0)
+
+        let loader = new GLTFLoader();
+        loader.load('./resource/candy_island/scene.gltf', function (gltf) {
+            scene.add(gltf.scene);
+            (function animate() {
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            })();
+        });
+    </script>
 </body>
+
 </html>

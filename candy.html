@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"
+        integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+    <style>
+        #canvas {
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    </style>
+
+    <div id="canvas"></div>
+
+    <script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.141.0/build/three.module.js"
+    }
+}
+</script>
+
+    <script type="module">
+        import * as THREE from "three";
+        import { GLTFLoader } from 'https://unpkg.com/three@0.141.0/examples/jsm/loaders/GLTFLoader.js'; //import gltf
+
+
+
+        let canvas = document.querySelector('#canvas');
+        let container = document.createElement("div");
+        let [width, height] = [window.innerWidth, window.innerHeight];
+        let [mouseX, mouseY] = [0, 0];
+        let [cursorX, cursorY] = [5, 0];
+        let aspectRatio = width / height;
+
+        canvas.appendChild(container);
+        Object.assign(canvas, { width, height });
+
+        let scene = new THREE.Scene();
+        scene.background = new THREE.Color('#ffd45f'); // 배경색 설정
+
+        let camera = new THREE.PerspectiveCamera(6, aspectRatio, 1, 1000); // 카메라 관점 설정
+        camera.position.set(-45, 25, 100); // x, y, z 축
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 0.5, 200);
+        scene.add(directionalLight);
+
+        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0.2);
+        hemisphereLight.position.set(-100, 100, 100);
+        scene.add(hemisphereLight);
+
+
+        let renderer = new THREE.WebGLRenderer({
+            alpha: true,
+            antialias: true // 계단 현상 완화
+        });
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+        document.addEventListener("mousemove", mouseMove);
+
+        function mouseMove(event) {
+            cursorX = (event.clientX / (window.innerWidth * 1.25)) * 3 + 4;
+            cursorY = (event.clientY / window.innerHeight) * 1 - 0.25;
+        }
+
+        let model;
+        let loader = new GLTFLoader();
+        loader.load('./resource/duck_ice_cream/scene.gltf', function (gltf) {
+            model = gltf.scene;
+            model.traverse
+            scene.add(gltf.scene);
+            (function animate() {
+                if (model) {
+                    model.rotation.y += (-model.rotation.y + cursorX) * 0.1;
+                    model.rotation.x += (-model.rotation.x + cursorY) * 0.1;
+                    camera.lookAt(scene.position);
+                }
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            })();
+        });
+
+
+    </script>
+</body>
+
+</html>
