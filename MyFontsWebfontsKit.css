@@ -18,6 +18,6 @@
   
 @font-face {
   font-family: "FaktumRegular";
-  src: url('/resource/fonts/FaktumRegular/font.woff2') format('woff2'), url('/resource/fonts/FaktumRegular/font.woff') format('woff');
+  src: url('https://ddokn.github.io/deepfault.github.io/resource/fonts/FaktumRegular/font.woff2') format('woff2'), url('https://ddokn.github.io/deepfault.github.io/resource/fonts/FaktumRegular/font.woff') format('woff');
 }
 
